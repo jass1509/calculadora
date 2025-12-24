@@ -1,51 +1,42 @@
-
 import cgi
 import re
 
-print("Content-Type: text/html\n")
+print("Content-Type: text/html; charset=utf-8\n")
 
 form = cgi.FieldStorage()
-operacion = form.getvalue("operacion", "")
+entrada = form.getvalue("operacion", "")
 
-html = """
-<html>
-<head>
-    <title>Resultado</title>
-</head>
-<body>
-<h1>Resultado</h1>
-"""
+patron = r"^\s*([-+]?\d*\.?\d+)\s*([\+\-\*/])\s*([-+]?\d*\.?\d+)\s*$"
 
-patron = r'^(\d+)\s*([\+\-\*/])\s*(\d+)$'
-match = re.match(patron, operacion)
+resultado_msg = ""
+match = re.match(patron, entrada)
 
 if match:
-    num1 = int(match.group(1))
+    num1 = float(match.group(1))
     operador = match.group(2)
-    num2 = int(match.group(3))
-
-    try:
-        if operador == '+':
-            resultado = num1 + num2
-        elif operador == '-':
-            resultado = num1 - num2
-        elif operador == '*':
-            resultado = num1 * num2
-        elif operador == '/':
-            resultado = num1 / num2
-
-        html += f"<p>{num1} {operador} {num2} = <strong>{resultado}</strong></p>"
-
-    except ZeroDivisionError:
-        html += "<p>Error: División por cero</p>"
+    num2 = float(match.group(3))
+    
+    if operador == '+':
+        res = num1 + num2
+    elif operador == '-':
+        res = num1 - num2
+    elif operador == '*':
+        res = num1 * num2
+    elif operador == '/':
+        res = num1 / num2 if num2 != 0 else "Error: División por cero"
+    
+    resultado_msg = f"<h2>Resultado: {res}</h2>"
 else:
-    html += "<p>Error: Operación no válida</p>"
+    resultado_msg = "<h2 style='color:red;'>Formato inválido. Use 'número operador número'</h2>"
 
-html += """
-<br>
-<a href="/html/index.html">Volver</a>
+print(f"""
+<!DOCTYPE html>
+<html lang="es">
+<head><title>Resultado</title></head>
+<body style="font-family: Arial; text-align: center; margin-top: 50px;">
+    {resultado_msg}
+    <p>Operación recibida: {entrada}</p>
+    <a href="../html/index.html">Volver</a>
 </body>
 </html>
-"""
-
-print(html)
+""")
